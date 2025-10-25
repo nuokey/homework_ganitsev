@@ -17,20 +17,19 @@ void init(subvector *qv) {
 }
 
 bool resize(subvector *qv, unsigned int new_capacity) {
-    // if (new_capacity == 0) {
-    //     // Если новая capacity = 0, освобождаем память
-    //     delete[] qv->mas;
-    //     qv->mas = nullptr;
-    //     qv->capacity = 0;
-    //     qv->top = 0;
-    //     return true;
-    // }
+    if (new_capacity == 0) {
+        delete[] qv->mas;
+        qv->mas = nullptr;
+        qv->capacity = 0;
+        qv->top = 0;
+        return true;
+    }
     
     // Создаем новый массив
     int *new_mas = new int[new_capacity];
     
     // Копируем существующие элементы
-    unsigned int elements_to_copy = min(qv->top, qv->capacity*2);
+    unsigned int elements_to_copy = (qv->top < new_capacity) ? qv->top : new_capacity;
     for (unsigned int i = 0; i < elements_to_copy; i++) {
         new_mas[i] = qv->mas[i];
     }
@@ -40,21 +39,23 @@ bool resize(subvector *qv, unsigned int new_capacity) {
     
     // Обновляем поля структуры
     qv->mas = new_mas;
-    qv->capacity *= 2;
+    qv->capacity = new_capacity;
     qv->top = elements_to_copy;
     
     return true;
 }
 
-void push_back(subvector *qv, int d) {
-    // Если места нет, нужно увеличить capacity
+bool push_back(subvector *qv, int d) {
     if (qv->top == qv->capacity) {
-        // Если capacity = 0, устанавливаем начальный размер 1
-        resize(qv, qv->capacity * 2);
+        unsigned int new_capacity = (qv->capacity == 0) ? 1 : qv->capacity * 2;
+        if (!resize(qv, new_capacity)) {
+            return false;
+        }
     }
     
     qv->mas[qv->top] = d;
     qv->top++;
+    return true;
 }
 
 int pop_back(subvector *qv) {
@@ -66,24 +67,18 @@ int pop_back(subvector *qv) {
     return qv->mas[qv->top];
 }
 
-
-
 void shrink_to_fit(subvector *qv) {
     if (qv->top == 0) {
-        // Если нет элементов, освобождаем всю память
         delete[] qv->mas;
         qv->mas = nullptr;
         qv->capacity = 0;
     } else if (qv->top < qv->capacity) {
-        // Создаем новый массив точно под размер данных
         int *new_mas = new int[qv->top];
         
-        // Копируем данные
         for (unsigned int i = 0; i < qv->top; i++) {
             new_mas[i] = qv->mas[i];
         }
         
-        // Освобождаем старую память и обновляем указатель
         delete[] qv->mas;
         qv->mas = new_mas;
         qv->capacity = qv->top;
@@ -100,9 +95,6 @@ void destructor(subvector *qv) {
     qv->top = 0;
     qv->capacity = 0;
 }
-
-
-
 
 
 
